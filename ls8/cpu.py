@@ -7,13 +7,11 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.memory = [0] * 256
+        self.ram = [0] * 256
         self.registers = [0] * 8
         self.registers[7] = 0xF4
         self.pc = 0
         self.ir = 0
-        self.mar = 0
-        self.mdr = 0
         self.fl = 0
 
     def load(self):
@@ -36,6 +34,13 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+
+    def ram_read(self, mar):
+        number_to_read = self.ram[mar]
+        return number_to_read
+
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
 
 
     def alu(self, op, reg_a, reg_b):
@@ -69,4 +74,4 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
