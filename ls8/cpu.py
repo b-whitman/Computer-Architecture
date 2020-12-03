@@ -2,6 +2,8 @@
 
 import sys
 
+HLT = 0b00000001
+
 class CPU:
     """Main CPU class."""
 
@@ -36,7 +38,10 @@ class CPU:
             address += 1
 
     def ram_read(self, mar):
-        number_to_read = self.ram[mar]
+        if mar < len(self.ram):
+            number_to_read = self.ram[mar]
+        else:
+            number_to_read = None    
         return number_to_read
 
     def ram_write(self, mar, mdr):
@@ -74,4 +79,17 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        
+        running = True
+
+        while running:
+
+            ir = self.pc
+            command = self.ram[ir]
+
+            operand_a = self.ram_read(ir+1)
+            operand_b = self.ram_read(ir+2)
+
+            if command == HLT:
+                running = False
+
+            self.pc += 1
