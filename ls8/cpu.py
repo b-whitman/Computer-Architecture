@@ -15,25 +15,30 @@ class CPU:
         self.registers = [0] * 8
         self.registers[7] = 0xF4
         self.pc = 0
-        self.ir = 0
         self.fl = 0
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
+        
+        program = []
 
-        # For now, we've just hardcoded a program:
+        if len(sys.argv) < 2:
+            print("missing filename argument")
+            sys.exit(1)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        file_path = sys.argv[1]
+        with open(file_path) as f:
+
+            for line in f:
+                split_line = line.split('#')[0]
+                stripped_split_line = split_line.strip()
+
+                if stripped_split_line != "":
+                    command = int(stripped_split_line, 2)
+
+                    program.append(command)
 
         for instruction in program:
             self.ram[address] = instruction
