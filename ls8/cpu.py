@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -12,8 +13,8 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.registers = [0] * 8
-        self.registers[7] = 0xF4
+        self.reg = [0] * 8
+        self.reg[7] = 0xF4
         self.pc = 0
         self.fl = 0
 
@@ -61,6 +62,9 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            print(f"Multiplying {self.reg[reg_a]} * {self.reg[reg_b]}")
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -93,20 +97,29 @@ class CPU:
             ir = self.pc
             command = self.ram[ir]
 
+            # print(command)
+
             operand_a = self.ram_read(ir+1)
             operand_b = self.ram_read(ir+2)
 
             if command == LDI:
+                print(f"Storing {operand_b}...")
                 register_address = operand_a
                 num_to_save = operand_b
-                self.ram_write(register_address, num_to_save)
+                self.reg[register_address] = num_to_save
                 self.pc += 2
 
             elif command == PRN:
+                print(f"printing reg: {self.reg[0]}")
                 register_address = operand_a
-                number_to_print = self.ram[register_address]
+                number_to_print = self.reg[register_address]
                 print(number_to_print)
                 self.pc += 1
+            
+            elif command == MUL:
+                print(f"reg 0: {self.reg[0]}, reg 1: {self.reg[1]}")
+                self.alu('MUL', operand_a, operand_b)
+                self.pc += 2
 
             elif command == HLT:
                 running = False
