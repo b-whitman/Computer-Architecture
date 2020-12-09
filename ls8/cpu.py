@@ -2,10 +2,12 @@
 
 import sys
 
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
-MUL = 0b10100010
+HLT  = 0b00000001
+LDI  = 0b10000010
+PRN  = 0b01000111
+MUL  = 0b10100010
+PUSH = 0b01000101
+POP  = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -63,7 +65,6 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == "MUL":
-            print(f"Multiplying {self.reg[reg_a]} * {self.reg[reg_b]}")
             self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
@@ -103,25 +104,38 @@ class CPU:
             operand_b = self.ram_read(ir+2)
 
             if command == LDI:
-                print(f"Storing {operand_b}...")
                 register_address = operand_a
                 num_to_save = operand_b
                 self.reg[register_address] = num_to_save
-                self.pc += 2
 
             elif command == PRN:
-                print(f"printing reg: {self.reg[0]}")
                 register_address = operand_a
                 number_to_print = self.reg[register_address]
                 print(number_to_print)
-                self.pc += 1
             
             elif command == MUL:
-                print(f"reg 0: {self.reg[0]}, reg 1: {self.reg[1]}")
                 self.alu('MUL', operand_a, operand_b)
-                self.pc += 2
+
+            elif command == PUSH:
+                # Decrement self.reg[7]
+                self.reg[7] -= 1
+                # Copy value in given register to address pointed to by self.reg[7]
+                register_address = operand_a
+                value = self.reg[register_address]
+                sp = self.reg[7]
+                self.ram[sp] = value
+
+            elif command == POP:
+                # Copy value from RAM at SP to given register
+                register_address = operand_a
+                sp = self.reg[7]
+                value = self.ram[sp]
+                self.reg[register_address] = value
+                # Increment SP
+                self.reg[7] += 1
 
             elif command == HLT:
                 running = False
 
-            self.pc += 1
+            number_of_operands = command >> 6
+            self.pc += (1 + number_of_operands)
