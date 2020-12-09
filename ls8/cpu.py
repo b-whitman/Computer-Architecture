@@ -20,6 +20,14 @@ class CPU:
         self.pc = 0
         self.fl = 0
 
+        self.branchtable = {}
+        self.branchtable[HLT] = self.handle_HLT
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[MUL] = self.handle_MUL
+        self.branchtable[PUSH] = self.handle_PUSH
+        self.branchtable[POP] = self.handle_POP
+
     def load(self):
         """Load a program into memory."""
 
@@ -89,11 +97,45 @@ class CPU:
 
         print()
 
+    def handle_LDI(self, operand_a, operand_b):
+        register_address = operand_a
+        num_to_save = operand_b
+        self.reg[register_address] = num_to_save
+
+    def handle_PRN(self, operand_a, operand_b):
+        register_address = operand_a
+        number_to_print = self.reg[register_address]
+        print(number_to_print)
+    
+    def handle_MUL(self, operand_a, operand_b):
+        self.alu('MUL', operand_a, operand_b)
+
+    def handle_HLT(self, operand_a, operand_b):
+        self.running = False
+
+    def handle_PUSH(self, operand_a, operand_b):
+        # Decrement self.reg[7]
+        self.reg[7] -= 1
+        # Copy value in given register to address pointed to by self.reg[7]
+        register_address = operand_a
+        value = self.reg[register_address]
+        sp = self.reg[7]
+        self.ram[sp] = value
+
+    def handle_POP(self, operand_a, operand_b):
+        # Copy value from RAM at SP to given register
+        register_address = operand_a
+        sp = self.reg[7]
+        value = self.ram[sp]
+        self.reg[register_address] = value
+        # Increment SP
+        self.reg[7] += 1
+
     def run(self):
         """Run the CPU."""
-        running = True
+        self.running = True
 
-        while running:
+        while self.running:
 
             ir = self.pc
             command = self.ram[ir]
@@ -103,39 +145,7 @@ class CPU:
             operand_a = self.ram_read(ir+1)
             operand_b = self.ram_read(ir+2)
 
-            if command == LDI:
-                register_address = operand_a
-                num_to_save = operand_b
-                self.reg[register_address] = num_to_save
-
-            elif command == PRN:
-                register_address = operand_a
-                number_to_print = self.reg[register_address]
-                print(number_to_print)
-            
-            elif command == MUL:
-                self.alu('MUL', operand_a, operand_b)
-
-            elif command == PUSH:
-                # Decrement self.reg[7]
-                self.reg[7] -= 1
-                # Copy value in given register to address pointed to by self.reg[7]
-                register_address = operand_a
-                value = self.reg[register_address]
-                sp = self.reg[7]
-                self.ram[sp] = value
-
-            elif command == POP:
-                # Copy value from RAM at SP to given register
-                register_address = operand_a
-                sp = self.reg[7]
-                value = self.ram[sp]
-                self.reg[register_address] = value
-                # Increment SP
-                self.reg[7] += 1
-
-            elif command == HLT:
-                running = False
+            self.branchtable[command](operand_a, operand_b)
 
             number_of_operands = command >> 6
             self.pc += (1 + number_of_operands)
