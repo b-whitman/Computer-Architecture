@@ -8,6 +8,8 @@ PRN  = 0b01000111
 MUL  = 0b10100010
 PUSH = 0b01000101
 POP  = 0b01000110
+CALL = 0b01010000
+RET  = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -27,6 +29,8 @@ class CPU:
         self.branchtable[MUL] = self.handle_MUL
         self.branchtable[PUSH] = self.handle_PUSH
         self.branchtable[POP] = self.handle_POP
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
 
     def load(self):
         """Load a program into memory."""
@@ -130,6 +134,18 @@ class CPU:
         self.reg[register_address] = value
         # Increment SP
         self.reg[7] += 1
+
+    def handle_CALL(self, operand_a, operand_b):
+        # Push address of next instruction onto the stack
+        # Set PC to address stored in given register
+
+    def handle_RET(self, operand_a, operand_b):
+        # Pop value from top of stack
+        sp = self.reg[7]
+        value = self.ram[sp]
+        self.reg[7] += 1
+        # Store value in PC
+        self.pc = value
 
     def run(self):
         """Run the CPU."""
