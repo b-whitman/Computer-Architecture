@@ -39,6 +39,8 @@ class CPU:
         self.branchtable[RET] = self.handle_RET
         self.branchtable[CMP] = self.handle_CMP
         self.branchtable[JMP] = self.handle_JMP
+        self.branchtable[JEQ] = self.handle_JEQ
+        self.branchtable[JNE] = self.handle_JNE
 
     def load(self):
         """Load a program into memory."""
@@ -183,7 +185,23 @@ class CPU:
     def handle_CMP(self, operand_a, operand_b):
         self.alu("CMP", operand_a, operand_b)
 
+    def handle_JEQ(self, operand_a, operand_b):
+        equal_flag = self.fl
+        register_address = operand_a
+        ram_address = self.reg[register_address]
+        if equal_flag:
+            self.pc = ram_address
+        else:
+            self.pc += 2
 
+    def handle_JNE(self, operand_a, operand_b):
+        equal_flag = self.fl
+        register_address = operand_a
+        ram_address = self.reg[register_address]
+        if not equal_flag:
+            self.pc = ram_address
+        else:
+            self.pc += 2
 
     def run(self):
         """Run the CPU."""
